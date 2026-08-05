@@ -210,15 +210,6 @@ wheels = [
 ]
 
 [[package]]
-name = "cachetools"
-version = "7.0.5"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/af/dd/57fe3fdb6e65b25a5987fd2cdc7e22db0aef508b91634d2e57d22928d41b/cachetools-7.0.5.tar.gz", hash = "sha256:0cd042c24377200c1dcd225f8b7b12b0ca53cc2c961b43757e774ebe190fd990", size = 37367, upload-time = "2026-03-09T20:51:29.451Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/06/f3/39cf3367b8107baa44f861dc802cbf16263c945b62d8265d36034fc07bea/cachetools-7.0.5-py3-none-any.whl", hash = "sha256:46bc8ebefbe485407621d0a4264b23c080cedd913921bad7ac3ed2f26c183114", size = 13918, upload-time = "2026-03-09T20:51:27.33Z" },
-]
-
-[[package]]
 name = "certifi"
 version = "2026.2.25"
 source = { registry = "https://pypi.org/simple" }
@@ -754,7 +745,6 @@ name = "mpp-rest-python"
 version = "1.0.0"
 source = { virtual = "." }
 dependencies = [
-    { name = "cachetools" },
     { name = "fastapi" },
     { name = "pympp", extra = ["tempo"] },
     { name = "python-dotenv" },
@@ -773,9 +763,8 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "cachetools", specifier = ">=5.3.0" },
     { name = "fastapi", specifier = ">=0.115.0" },
-    { name = "pympp", extras = ["tempo"] },
+    { name = "pympp", extras = ["tempo"], specifier = ">=0.10.0" },
     { name = "python-dotenv", specifier = ">=1.0.0" },
     { name = "stripe", specifier = ">=11.0.0" },
     { name = "uvicorn", specifier = ">=0.30.0" },
@@ -1139,20 +1128,25 @@ wheels = [
 
 [[package]]
 name = "pympp"
-version = "0.3.0"
+version = "0.10.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "httpx" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/f3/68/5dd504ac39be984c0a541d33e8dcf0a5a339359fc724062f0e54f2ee1506/pympp-0.3.0.tar.gz", hash = "sha256:474569986fd50e9b7ec01a3c179b9dada25b391c818862ba4b5aa90c645d607c", size = 90325, upload-time = "2026-02-23T04:24:34.555Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/9f/7c/9fc86df92698f6a30dcf65a2f7cf590a3a7eae1721237a52f267f640d9cf/pympp-0.10.0.tar.gz", hash = "sha256:2ad0e8a1998dae6428028137caad187322e94e09b1d81220f34c50ddc23f2ffa", size = 170390, upload-time = "2026-08-03T19:42:38.649Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/83/57/082ab6efdcdcd1c06043686f7768d6a96583552e81e1289d98f3fe58185e/pympp-0.3.0-py3-none-any.whl", hash = "sha256:136b2522e3e9b20d97e72101efb4e36a575cd8d26969b50140303c4517c980a0", size = 59079, upload-time = "2026-02-23T04:24:33.321Z" },
+    { url = "https://files.pythonhosted.org/packages/80/8c/33a030844fbaad9e31c2eb9184a00938c6b2b31c2634bc0c7b9b973114c3/pympp-0.10.0-py3-none-any.whl", hash = "sha256:aee49dd8833be41d652d5ef944084201b6aef9f2bf8551d7d84e07f119cb9dee", size = 95036, upload-time = "2026-08-03T19:42:37.273Z" },
 ]
 
 [package.optional-dependencies]
 tempo = [
+    { name = "attrs" },
+    { name = "eth-abi" },
+    { name = "eth-account" },
+    { name = "eth-hash", extra = ["pycryptodome"] },
     { name = "pydantic" },
     { name = "pytempo" },
+    { name = "rlp" },
 ]
 
 [[package]]

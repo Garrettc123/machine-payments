@@ -7,6 +7,11 @@ import Stripe from "stripe";
 
 config();
 
+// Don't put any keys in code. Use an environment variable (as shown
+// here) or secrets vault to supply keys to your integration.
+//
+// See https://docs.stripe.com/keys-best-practices and find your
+// keys at https://dashboard.stripe.com/apikeys.
 if (!process.env.STRIPE_SECRET_KEY) {
   console.error("STRIPE_SECRET_KEY environment variable is required");
   process.exit(1);
@@ -110,7 +115,7 @@ app.get("/paid", async (c) => {
 
   if (response.status === 402) return response.challenge;
 
-  return response.withReceipt(Response.json({ data: "..." }));
+  return response.withReceipt(Response.json({ foo: "bar" }));
 });
 
 serve({

@@ -53,9 +53,18 @@ npx mppx@latest validate http://localhost:4242
 
 ## Test the sample
 
+### With Link (card payments)
+
 ```bash
 npx @stripe/link-cli mpp pay http://localhost:4242/paid \
-  -X POST \
-  -d '{}' \
   --context "Testing the MPP machine payments integration sample server running locally on localhost:4242, verifying end-to-end payment flow with Stripe shared payment tokens"
+```
+
+### With Tempo (crypto payments)
+
+```bash
+curl -fsSL https://tempo.xyz/install | bash
+tempo wallet login
+tempo wallet fund
+tempo request http://localhost:4242/paid
 ```

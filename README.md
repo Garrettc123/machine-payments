@@ -2,14 +2,14 @@
 
 This repository demonstrates how to implement machine-to-machine payments using different protocols:
 
-- **[MPP](./mpp/)** — The Machine Payments Protocol using using on-chain crypto payments
+- **[MPP](./mpp/)** — The Machine Payments Protocol using both Shared Payment Tokens for card payments as well as on-chain crypto payments
 - **[x402](./x402/)** — The x402 HTTP payment protocol using on-chain crypto payments
 
 ## Prerequisites
 
-- **Stripe account** with the relevant features enabled. Reach out to [machine-payments@stripe.com](mailto:machine-payments@stripe.com) to get setup.
-- For MPP: Wallet with testnet funds (Tempo Moderato)
-- For x402: Wallet with testnet USDC (Base Sepolia)
+- **Stripe account** with the relevant features enabled. 
+- For MPP: [@stripe/link-cli](https://www.npmjs.com/package/@stripe/link-cli) or [Tempo wallet](https://tempo.xyz)
+- For x402: Wallet with USDC on Base
 
 ## Getting Started
 
