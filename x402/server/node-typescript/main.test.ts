@@ -3,6 +3,7 @@ import { beforeAll, describe, expect, it, vi } from "vitest";
 
 // Stub env vars before importing the app
 vi.stubEnv("STRIPE_SECRET_KEY", "sk_test_fake");
+vi.stubEnv("DEPOSIT_ADDRESS", "0x1234567890abcdef1234567890abcdef12345678");
 vi.stubEnv("FACILITATOR_URL", "https://example.com/facilitator");
 
 // Mock @hono/node-server so `serve()` is a no-op
@@ -21,6 +22,7 @@ vi.mock("@x402/hono", () => ({
   x402ResourceServer: vi.fn().mockImplementation(
     class {
       register = vi.fn().mockReturnThis();
+      onAfterSettle = vi.fn().mockReturnThis();
     },
   ),
 }));
