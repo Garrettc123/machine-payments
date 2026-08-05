@@ -27,7 +27,6 @@ if (!process.env.DEPOSIT_ADDRESS) {
   process.exit(1);
 }
 
-
 // Stripe deposit address created via:
 // stripe post /v1/crypto/deposit_addresses --live \
 //   --stripe-version 2026-05-27.preview -d network=base
@@ -45,8 +44,13 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
 
 // The Coinbase Developer Platform (CDP) facilitator verifies and settles x402 payments on-chain.
 // See: https://docs.cdp.coinbase.com/x402/quickstart-for-sellers#running-on-mainnet
+if (!process.env.CDP_API_KEY_ID || !process.env.CDP_API_KEY_SECRET) {
+  console.error("CDP_API_KEY_ID and CDP_API_KEY_SECRET environment variables are required");
+  process.exit(1);
+}
+
 const facilitatorClient = new HTTPFacilitatorClient(
-  createFacilitatorConfig(process.env.CDP_API_KEY_ID!, process.env.CDP_API_KEY_SECRET!),
+  createFacilitatorConfig(process.env.CDP_API_KEY_ID, process.env.CDP_API_KEY_SECRET),
 );
 
 const resourceServer = new x402ResourceServer(facilitatorClient).register(
@@ -55,8 +59,6 @@ const resourceServer = new x402ResourceServer(facilitatorClient).register(
 );
 
 // Record settled on-chain payments as Stripe PaymentIntents using transaction_verification mode.
-const SUPPORTED_METHODS = ["evm/charge"];
-
 resourceServer.onAfterSettle(async ({ result, requirements }) => {
   const txHash = result.transaction;
   if (!txHash || !result.success) return;
