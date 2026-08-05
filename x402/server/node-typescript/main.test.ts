@@ -3,7 +3,7 @@ import { beforeAll, describe, expect, it, vi } from "vitest";
 
 // Stub env vars before importing the app
 vi.stubEnv("STRIPE_SECRET_KEY", "sk_test_fake");
-vi.stubEnv("FACILITATOR_URL", "https://example.com/facilitator");
+vi.stubEnv("DEPOSIT_ADDRESS", "0x1234567890abcdef1234567890abcdef12345678");
 
 // Mock @hono/node-server so `serve()` is a no-op
 vi.mock("@hono/node-server", () => ({
@@ -13,6 +13,17 @@ vi.mock("@hono/node-server", () => ({
 // Mock process.exit to prevent it from killing the test runner
 vi.spyOn(process, "exit").mockImplementation((() => {}) as never);
 
+// Mock @coinbase/x402 facilitator config
+vi.mock("@coinbase/x402", () => ({
+  createFacilitatorConfig: vi.fn().mockReturnValue({
+    url: "https://api.cdp.coinbase.com/platform/v2/x402",
+    createAuthHeaders: vi.fn().mockResolvedValue({
+      verify: { Authorization: "Bearer fake" },
+      settle: { Authorization: "Bearer fake" },
+    }),
+  }),
+}));
+
 // Mock x402 modules so we don't need real payment infra
 vi.mock("@x402/hono", () => ({
   paymentMiddleware: vi.fn().mockReturnValue(async (_c: unknown, next: () => Promise<void>) => {
@@ -21,6 +32,7 @@ vi.mock("@x402/hono", () => ({
   x402ResourceServer: vi.fn().mockImplementation(
     class {
       register = vi.fn().mockReturnThis();
+      onAfterSettle = vi.fn().mockReturnThis();
     },
   ),
 }));

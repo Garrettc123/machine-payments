@@ -8,29 +8,39 @@ This is the TypeScript implementation of the MPP REST API sample using Hono.
 - [pnpm](https://pnpm.io/) package manager
 - `make`
 - Stripe account with crypto payments enabled
-- EVM wallet with testnet USDC on Tempo testnet
-
-These examples run on Tempo testnet. If you need testnet funds, you can use the [Tempo faucet](https://docs.tempo.xyz/quickstart/faucet).
+- A Stripe deposit address (created via the Stripe CLI)
 
 ## Setup
 
-1. Configure environment variables:
+1. Create a crypto deposit address:
 ```bash
-cp ../../../.env.template .env
-# Edit .env with your credentials
+stripe post /v1/crypto/deposit_addresses --live --stripe-version 2026-05-27.preview -d network=tempo
 ```
 
-2. Install dependencies:
+2. Configure environment variables:
+```bash
+cp ../../../.env.template .env
+# Edit .env with your credentials:
+# - STRIPE_SECRET_KEY
+# - DEPOSIT_ADDRESS (from step 1)
+# - STRIPE_PROFILE_ID (from your Stripe profile)
+```
+
+3. Install dependencies:
 ```bash
 make install
 ```
 
 ## Run the server
 
-- `make run` — start the local sample server
-
 ```bash
 make run
+```
+
+## Validate the implementation
+
+```bash
+npx mppx@latest validate http://localhost:4242
 ```
 
 ## Development commands
@@ -41,16 +51,20 @@ make run
 - `make test` — run the automated test suite
 - `make ci` — run the full local CI sequence (`install`, `lint`, `typecheck`, and `test`)
 
-```bash
-make lint
-make format
-make typecheck
-make test
-make ci
-```
-
 ## Test the sample
 
+### With Link (card payments)
+
 ```bash
-purl http://localhost:4242/paid
+npx @stripe/link-cli mpp pay http://localhost:4242/paid \
+  --context "Testing the MPP machine payments integration sample server running locally on localhost:4242, verifying end-to-end payment flow with Stripe shared payment tokens"
+```
+
+### With Tempo (crypto payments)
+
+```bash
+curl -fsSL https://tempo.xyz/install | bash
+tempo wallet login
+tempo wallet fund
+tempo request http://localhost:4242/paid
 ```

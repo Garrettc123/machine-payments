@@ -3,6 +3,8 @@ import { beforeAll, describe, expect, it, vi } from "vitest";
 
 // Stub env vars before importing the app
 vi.stubEnv("STRIPE_SECRET_KEY", "sk_test_fake");
+vi.stubEnv("DEPOSIT_ADDRESS", "0xtest_deposit_address");
+vi.stubEnv("STRIPE_PROFILE_ID", "profile_test_123");
 
 // Mock @hono/node-server so `serve()` is a no-op
 vi.mock("@hono/node-server", () => ({
@@ -20,13 +22,7 @@ vi.mock("stripe", () => {
         paymentIntents = {
           create: vi.fn().mockResolvedValue({
             id: "pi_test_123",
-            next_action: {
-              crypto_display_details: {
-                deposit_addresses: {
-                  tempo: { address: "0xtest123" },
-                },
-              },
-            },
+            status: "succeeded",
           }),
         };
       },
@@ -41,12 +37,14 @@ vi.mock("mppx/server", () => {
     withReceipt: (res: Response) => res,
   });
   const methodCharge = vi.fn().mockReturnValue(chargeHandler);
+  const mockInstance = {
+    tempo: { charge: methodCharge },
+    stripe: { charge: methodCharge },
+    onPaymentSuccess: vi.fn(),
+  };
   return {
     Mppx: {
-      create: vi.fn().mockReturnValue({
-        tempo: { charge: methodCharge },
-        stripe: { charge: methodCharge },
-      }),
+      create: vi.fn().mockReturnValue(mockInstance),
       compose: vi.fn().mockImplementation((...handlers: unknown[]) => handlers[0]),
     },
     stripe: {
@@ -73,8 +71,6 @@ describe("mpp server", () => {
 
   it("GET /paid returns 402 or 200 depending on mppx charge flow", async () => {
     const res = await app.request("/paid");
-    // The mppx mock charge returns status 200 with withReceipt,
-    // so the route should return the wrapped response
     expect([200, 402]).toContain(res.status);
   });
 });

@@ -1,30 +1,40 @@
+import { createFacilitatorConfig } from "@coinbase/x402";
 import { serve } from "@hono/node-server";
 import { HTTPFacilitatorClient } from "@x402/core/server";
 import { ExactEvmScheme } from "@x402/evm/exact/server";
 import { paymentMiddleware, x402ResourceServer } from "@x402/hono";
 import { config } from "dotenv";
 import { Hono } from "hono";
-import NodeCache from "node-cache";
 import Stripe from "stripe";
 
 config();
-
-const app = new Hono();
 
 // Don't put any keys in code. Use an environment variable (as shown
 // here) or secrets vault to supply keys to your integration.
 //
 // See https://docs.stripe.com/keys-best-practices and find your
 // keys at https://dashboard.stripe.com/apikeys.
-// Stripe handles payment processing and provides the crypto deposit address.
 if (!process.env.STRIPE_SECRET_KEY) {
-  console.error("❌ STRIPE_SECRET_KEY environment variable is required");
+  console.error("STRIPE_SECRET_KEY environment variable is required");
   process.exit(1);
 }
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
-  // @ts-expect-error
-  apiVersion: "2026-03-04.preview",
+if (!process.env.DEPOSIT_ADDRESS) {
+  console.error("DEPOSIT_ADDRESS environment variable is required");
+  console.error(
+    "Create one with: stripe post /v1/crypto/deposit_addresses --live --stripe-version 2026-05-27.preview -d network=base",
+  );
+  process.exit(1);
+}
+
+// Stripe deposit address created via:
+// stripe post /v1/crypto/deposit_addresses --live \
+//   --stripe-version 2026-05-27.preview -d network=base
+const DEPOSIT_ADDRESS = process.env.DEPOSIT_ADDRESS.toLowerCase();
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+  // @ts-expect-error preview API version required for crypto PaymentIntents
+  apiVersion: "2026-05-27.preview",
   appInfo: {
     name: "stripe-samples/machine-payments",
     url: "https://github.com/stripe-samples/machine-payments",
@@ -32,105 +42,77 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
   },
 });
 
-// The facilitator verifies payment proofs and settles transactions on-chain.
-// In this example, we us the x402.org testnet facilitator.
-const facilitatorUrl = process.env.FACILITATOR_URL;
-if (!facilitatorUrl) {
-  console.error("❌ FACILITATOR_URL environment variable is required");
+// The Coinbase Developer Platform (CDP) facilitator verifies and settles x402 payments on-chain.
+// See: https://docs.cdp.coinbase.com/x402/quickstart-for-sellers#running-on-mainnet
+if (!process.env.CDP_API_KEY_ID || !process.env.CDP_API_KEY_SECRET) {
+  console.error("CDP_API_KEY_ID and CDP_API_KEY_SECRET environment variables are required");
   process.exit(1);
 }
-const facilitatorClient = new HTTPFacilitatorClient({ url: facilitatorUrl });
 
-// In-memory cache for deposit addresses (TTL: 5 minutes)
-// NOTE: For production, use a distributed cache like Redis instead of node-cache
-const paymentCache = new NodeCache({ stdTTL: 300, checkperiod: 60 });
+const facilitatorClient = new HTTPFacilitatorClient(
+  createFacilitatorConfig(process.env.CDP_API_KEY_ID, process.env.CDP_API_KEY_SECRET),
+);
 
-// This function determines where payments should be sent. It either:
-// 1. Extracts the address from an existing payment header (for retry/verification), or
-// 2. Creates a new Stripe PaymentIntent to generate a fresh deposit address.
-// biome-ignore lint/suspicious/noExplicitAny: context type comes from x402 middleware
-async function createPayToAddress(context: any): Promise<string> {
-  // If a payment header exists, extract the destination address from it
-  if (context.paymentHeader) {
-    const decoded = JSON.parse(Buffer.from(context.paymentHeader, "base64").toString());
-    const toAddress = decoded.payload?.authorization?.to;
+const resourceServer = new x402ResourceServer(facilitatorClient).register(
+  "eip155:8453",
+  new ExactEvmScheme(),
+);
 
-    if (toAddress && typeof toAddress === "string") {
-      if (!paymentCache.has(toAddress.toLowerCase())) {
-        throw new Error("Invalid payTo address: not found in server cache");
-      }
-      return toAddress.toLowerCase();
-    }
+// Record settled on-chain payments as Stripe PaymentIntents using transaction_verification mode.
+resourceServer.onAfterSettle(async ({ result, requirements }) => {
+  const txHash = result.transaction;
+  if (!txHash || !result.success) return;
 
-    throw new Error("PaymentIntent did not return expected crypto deposit details");
-  }
+  // requirements.amount is in atomic USDC units (6 decimals).
+  // $0.01 = 10000 atomic units. Convert to cents for Stripe.
+  const amountInCents = Math.round(Number(requirements.amount) / 10000);
+  if (amountInCents < 1) return;
 
-  // Create a new PaymentIntent to get a fresh crypto deposit address
-  const decimals = 6; // USDC has 6 decimals
-  const amountInCents = Number(10000) / 10 ** (decimals - 2);
-
-  const paymentIntent = await stripe.paymentIntents.create({
-    amount: amountInCents,
-    currency: "usd",
-    payment_method_types: ["crypto"],
-    payment_method_data: {
-      type: "crypto",
-    },
-    payment_method_options: {
-      crypto: {
-        mode: "deposit",
-        deposit_options: {
-          networks: ["base"],
+  const pi = await stripe.paymentIntents.create(
+    {
+      amount: amountInCents,
+      currency: "usd",
+      confirm: true,
+      payment_method_data: { type: "crypto" },
+      payment_method_types: ["crypto"],
+      payment_method_options: {
+        crypto: {
+          mode: "transaction_verification",
+          transaction_verification_options: {
+            network: "base",
+            transaction_hash: txHash,
+          },
         },
-      } as Stripe.PaymentIntentCreateParams.PaymentMethodOptions.Crypto,
-    },
-    confirm: true,
-  });
-
-  if (!paymentIntent.next_action || !("crypto_display_details" in paymentIntent.next_action)) {
-    throw new Error("PaymentIntent did not return expected crypto deposit details");
-  }
-
-  // Extract the Base network deposit address from the PaymentIntent
-  const depositDetails = paymentIntent.next_action.crypto_display_details as unknown as {
-    deposit_addresses: Record<string, { address: string }>;
-  };
-  const payToAddress = depositDetails.deposit_addresses.base.address;
-
-  console.log(
-    `Created PaymentIntent ${paymentIntent.id} for $${(amountInCents / 100).toFixed(
-      2,
-    )} -> ${payToAddress}`,
+      },
+    } as Stripe.PaymentIntentCreateParams,
+    { idempotencyKey: txHash },
   );
 
-  paymentCache.set(payToAddress.toLowerCase(), true);
-  return payToAddress.toLowerCase();
-}
+  console.log(`Stripe PI ${pi.id}: ${amountInCents}¢ on base for tx ${txHash}`);
+});
 
-// The middleware protects the route and declares the payment requirements.
+const app = new Hono();
+
 app.use(
   paymentMiddleware(
     {
-      // Define pricing for protected endpoints
       "GET /paid": {
         accepts: [
           {
-            scheme: "exact", // Exact amount payment scheme
-            price: "$0.01", // Cost per request
-            network: "eip155:84532", // Base Sepolia testnet
-            payTo: createPayToAddress, // Dynamic address resolution
+            scheme: "exact",
+            price: "$0.01",
+            network: "eip155:8453",
+            payTo: DEPOSIT_ADDRESS,
           },
         ],
         description: "Data retrieval endpoint",
         mimeType: "application/json",
       },
     },
-    // Register the payment scheme handler for Base Sepolia
-    new x402ResourceServer(facilitatorClient).register("eip155:84532", new ExactEvmScheme()),
+    resourceServer,
   ),
 );
 
-// This endpoint is only accessible after valid payment is verified.
 app.get("/paid", (c) => {
   return c.json({
     foo: "bar",
