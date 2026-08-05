@@ -4,9 +4,11 @@ from typing import Any, cast
 
 import stripe
 import uvicorn
+from cdp.auth import GetAuthHeadersOptions, get_auth_headers
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from x402.http import FacilitatorConfig, HTTPFacilitatorClient, PaymentOption
+from x402.http.facilitator_client_base import AuthHeaders
 from x402.http.middleware.fastapi import PaymentMiddlewareASGI
 from x402.http.types import RouteConfig
 from x402.mechanisms.evm.exact import ExactEvmServerScheme
@@ -34,9 +36,13 @@ if not DEPOSIT_ADDRESS:
     )
     raise SystemExit(1)
 
-FACILITATOR_URL = os.getenv("FACILITATOR_URL")
-if not FACILITATOR_URL:
-    print("FACILITATOR_URL environment variable is required", file=sys.stderr)
+CDP_API_KEY_ID = os.getenv("CDP_API_KEY_ID")
+CDP_API_KEY_SECRET = os.getenv("CDP_API_KEY_SECRET")
+if not CDP_API_KEY_ID or not CDP_API_KEY_SECRET:
+    print(
+        "CDP_API_KEY_ID and CDP_API_KEY_SECRET environment variables are required",
+        file=sys.stderr,
+    )
     raise SystemExit(1)
 
 # Stripe deposit address created via the Stripe CLI:
@@ -52,14 +58,68 @@ stripe.set_app_info(
     version="1.0.0",
 )
 
-facilitator = HTTPFacilitatorClient(FacilitatorConfig(url=FACILITATOR_URL))
+# The Coinbase Developer Platform (CDP) facilitator verifies and settles
+# x402 payments on-chain.
+# See: https://docs.cdp.coinbase.com/x402/quickstart-for-sellers
+CDP_FACILITATOR_URL = "https://api.cdp.coinbase.com/platform/v2/x402"
+CDP_FACILITATOR_HOST = "api.cdp.coinbase.com"
+CDP_FACILITATOR_PATH = "/platform/v2/x402"
+
+
+class CdpAuthProvider:
+    """Generates CDP JWT auth headers for the x402 facilitator."""
+
+    def get_auth_headers(self) -> AuthHeaders:
+        verify_headers = get_auth_headers(
+            GetAuthHeadersOptions(  # type: ignore[call-arg]
+                api_key_id=CDP_API_KEY_ID,
+                api_key_secret=CDP_API_KEY_SECRET,
+                request_method="POST",
+                request_host=CDP_FACILITATOR_HOST,
+                request_path=f"{CDP_FACILITATOR_PATH}/verify",
+            )
+        )
+        settle_headers = get_auth_headers(
+            GetAuthHeadersOptions(  # type: ignore[call-arg]
+                api_key_id=CDP_API_KEY_ID,
+                api_key_secret=CDP_API_KEY_SECRET,
+                request_method="POST",
+                request_host=CDP_FACILITATOR_HOST,
+                request_path=f"{CDP_FACILITATOR_PATH}/settle",
+            )
+        )
+        supported_headers = get_auth_headers(
+            GetAuthHeadersOptions(  # type: ignore[call-arg]
+                api_key_id=CDP_API_KEY_ID,
+                api_key_secret=CDP_API_KEY_SECRET,
+                request_method="GET",
+                request_host=CDP_FACILITATOR_HOST,
+                request_path=f"{CDP_FACILITATOR_PATH}/supported",
+            )
+        )
+        return AuthHeaders(
+            verify=verify_headers,
+            settle=settle_headers,
+            supported=supported_headers,
+        )
+
+
+facilitator = HTTPFacilitatorClient(
+    FacilitatorConfig(
+        url=CDP_FACILITATOR_URL,
+        auth_provider=CdpAuthProvider(),
+    )
+)
 
 server = x402ResourceServer(facilitator)
-server.register("eip155:84532", ExactEvmServerScheme())  # type: ignore[arg-type]
+server.register("eip155:8453", ExactEvmServerScheme())  # type: ignore[arg-type]
 
 
 # Record settled on-chain payments as Stripe PaymentIntents
 # using transaction_verification mode.
+SUPPORTED_METHODS = ["evm/charge"]
+
+
 async def record_payment(context) -> None:
     result = context.result
     requirements = context.requirements
@@ -106,7 +166,7 @@ routes = {
             PaymentOption(
                 scheme="exact",
                 price="$0.01",
-                network="eip155:84532",
+                network="eip155:8453",
                 pay_to=DEPOSIT_ADDRESS,
             )
         ],

@@ -6,7 +6,8 @@ from fastapi import FastAPI
 def _set_env(monkeypatch):
     monkeypatch.setenv("STRIPE_SECRET_KEY", "sk_test_fake")
     monkeypatch.setenv("DEPOSIT_ADDRESS", "0x1234567890abcdef1234567890abcdef12345678")
-    monkeypatch.setenv("FACILITATOR_URL", "https://example.com/facilitator")
+    monkeypatch.setenv("CDP_API_KEY_ID", "fake_key_id")
+    monkeypatch.setenv("CDP_API_KEY_SECRET", "fake_key_secret")
 
 
 def test_app_is_fastapi():

@@ -23,7 +23,8 @@ cp ../../../.env.template .env
 # Edit .env with your credentials:
 # - STRIPE_SECRET_KEY
 # - DEPOSIT_ADDRESS (from step 1)
-# - FACILITATOR_URL
+# - CDP_API_KEY_ID (from Coinbase Developer Platform)
+# - CDP_API_KEY_SECRET (from Coinbase Developer Platform)
 ```
 
 3. Install dependencies:

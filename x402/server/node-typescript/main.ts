@@ -1,3 +1,4 @@
+import { createFacilitatorConfig } from "@coinbase/x402";
 import { serve } from "@hono/node-server";
 import { HTTPFacilitatorClient } from "@x402/core/server";
 import { ExactEvmScheme } from "@x402/evm/exact/server";
@@ -26,14 +27,10 @@ if (!process.env.DEPOSIT_ADDRESS) {
   process.exit(1);
 }
 
-const facilitatorUrl = process.env.FACILITATOR_URL;
-if (!facilitatorUrl) {
-  console.error("FACILITATOR_URL environment variable is required");
-  process.exit(1);
-}
 
 // Stripe deposit address created via:
-// stripe post /v1/crypto/deposit_addresses --live --stripe-version 2026-05-27.preview -d network=base
+// stripe post /v1/crypto/deposit_addresses --live \
+//   --stripe-version 2026-05-27.preview -d network=base
 const DEPOSIT_ADDRESS = process.env.DEPOSIT_ADDRESS.toLowerCase();
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
@@ -46,20 +43,26 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   },
 });
 
-const facilitatorClient = new HTTPFacilitatorClient({ url: facilitatorUrl });
+// The Coinbase Developer Platform (CDP) facilitator verifies and settles x402 payments on-chain.
+// See: https://docs.cdp.coinbase.com/x402/quickstart-for-sellers#running-on-mainnet
+const facilitatorClient = new HTTPFacilitatorClient(
+  createFacilitatorConfig(process.env.CDP_API_KEY_ID!, process.env.CDP_API_KEY_SECRET!),
+);
 
 const resourceServer = new x402ResourceServer(facilitatorClient).register(
-  "eip155:84532",
+  "eip155:8453",
   new ExactEvmScheme(),
 );
 
 // Record settled on-chain payments as Stripe PaymentIntents using transaction_verification mode.
+const SUPPORTED_METHODS = ["evm/charge"];
+
 resourceServer.onAfterSettle(async ({ result, requirements }) => {
   const txHash = result.transaction;
   if (!txHash || !result.success) return;
 
-  // The requirements amount is in atomic USDC units (6 decimals).
-  // Convert to cents for the PaymentIntent.
+  // requirements.amount is in atomic USDC units (6 decimals).
+  // $0.01 = 10000 atomic units. Convert to cents for Stripe.
   const amountInCents = Math.round(Number(requirements.amount) / 10000);
   if (amountInCents < 1) return;
 
@@ -96,7 +99,7 @@ app.use(
           {
             scheme: "exact",
             price: "$0.01",
-            network: "eip155:84532",
+            network: "eip155:8453",
             payTo: DEPOSIT_ADDRESS,
           },
         ],
