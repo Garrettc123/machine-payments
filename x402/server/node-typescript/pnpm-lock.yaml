@@ -15,7 +15,7 @@ importers:
         specifier: ^1.19.10
         version: 1.19.17(hono@4.13.0)
       '@x402/core':
-        specifier: ^2.10.0
+        specifier: ^2.11.0
         version: 2.21.0
       '@x402/evm':
         specifier: ^2.10.0
