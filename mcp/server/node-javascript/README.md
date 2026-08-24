@@ -53,7 +53,7 @@ claude mcp add --scope local paid-catalog -- \
 Ask an MCP-enabled agent:
 
 ```text
-Use the create_purchase_link tool from the paid-catalog MCP to purchase one coffee for Alice at test@example.com. This flow uses test mode, so it doesn't move real funds. Make sure you use the test mode flag when you create the Link spend request.
+Use the create_purchase_link tool from the paid-catalog MCP to purchase one item with the ID `coffee` for Alice at test@example.com. This flow uses test mode, so it doesn't move real funds. Make sure you use the test mode flag when you create the Link spend request.
 ```
 
 The agent receives an `/api/purchase` URL, uses the Link CLI to obtain an MPP credential, and posts it to complete the payment. The `coffee` item costs $5.00; `sticker` costs $2.00.
