@@ -4,7 +4,7 @@ import { config } from "dotenv";
 import { z } from "zod";
 import { getItem, validatePurchase } from "./catalog.js";
 
-config();
+config({ quiet: true });
 
 const server = new McpServer({ name: "paid-catalog", version: "1.0.0" });
 
@@ -47,7 +47,7 @@ server.registerTool(
               // This link must be MPP enabled.
               paymentLink,
               instructions: {
-                agent: `Use \`npx @stripe/link-cli mpp pay ${paymentLink}\` to pay with a Shared Payment Token for networkId "${process.env.STRIPE_PROFILE_ID}". Include a \`--context\` argument that describes the purchase, and add \`--test\` if this is a test-mode flow.`,
+                agent: `Use \`npx @stripe/link-cli mpp pay ${paymentLink}\` to pay with a Shared Payment Token for networkId "${process.env.STRIPE_PROFILE_ID}". Include a \`--context\` argument describing the purchase (minimum 100 characters), and add \`--test\` if this is a test-mode flow.`,
                 browser: "Open paymentLink in a browser to pay with a card.",
               },
               item: {
