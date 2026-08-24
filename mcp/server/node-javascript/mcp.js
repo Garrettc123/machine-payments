@@ -69,7 +69,6 @@ function createMcpServer() {
 export async function handleMcpRequest(request) {
   const server = createMcpServer();
   const transport = new WebStandardStreamableHTTPServerTransport({
-    sessionIdGenerator: undefined,
     enableJsonResponse: true,
   });
 
