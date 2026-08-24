@@ -47,7 +47,7 @@ server.registerTool(
               // This link must be MPP enabled.
               paymentLink,
               instructions: {
-                agent: `POST to paymentLink. Server returns 402 on first call — obtain an SPT for networkId "${process.env.STRIPE_PROFILE_ID}" and retry.`,
+                agent: `Use \`npx @stripe/link-cli mpp pay ${paymentLink}\` to pay with a Shared Payment Token for networkId "${process.env.STRIPE_PROFILE_ID}". Include a \`--context\` argument that describes the purchase, and add \`--test\` if this is a test-mode flow.`,
                 browser: "Open paymentLink in a browser to pay with a card.",
               },
               item: {

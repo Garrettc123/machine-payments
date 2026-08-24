@@ -9,6 +9,7 @@ This is the JavaScript implementation of a monetized MCP catalog sample using MP
 - `make`
 - Stripe account with Machine Payments enabled
 - A Stripe profile ID for Shared Payment Tokens
+- [Link CLI](https://www.npmjs.com/package/@stripe/link-cli) (`npx @stripe/link-cli`) for test Shared Payment Tokens
 
 ## Setup
 
@@ -20,6 +21,7 @@ cp ../../../.env.template .env
 # - STRIPE_SECRET_KEY
 # - STRIPE_PROFILE_ID (from your Stripe profile)
 # - BASE_URL=http://localhost:4242
+# - PORT=4242
 ```
 
 2. Install dependencies:
@@ -51,10 +53,10 @@ claude mcp add --scope local paid-catalog -- \
 Ask an MCP-enabled agent:
 
 ```text
-Use the create_purchase_link tool from the paid-catalog MCP to purchase one coffee for Alice at test@example.com. This is a test flow; use test mode when creating the Link spend request.
+Use the create_purchase_link tool from the paid-catalog MCP to purchase one coffee for Alice at test@example.com. This flow uses test mode, so it doesn't move real funds. Make sure you use the test mode flag when you create the Link spend request.
 ```
 
-The agent receives an `/api/purchase` URL, obtains an MPP credential from the Link agent wallet, and posts it to complete the payment. The `coffee` item costs $5.00; `sticker` costs $2.00.
+The agent receives an `/api/purchase` URL, uses the Link CLI to obtain an MPP credential, and posts it to complete the payment. The `coffee` item costs $5.00; `sticker` costs $2.00.
 
 ## Development commands
 

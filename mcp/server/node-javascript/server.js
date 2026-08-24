@@ -91,7 +91,7 @@ app.get("/checkout/:itemId", (context) => {
   return context.text("Replace this route with the browser checkout flow for your application.");
 });
 
-serve({ fetch: app.fetch, port: Number(process.env.PORT ?? 3000) });
+serve({ fetch: app.fetch, port: Number(process.env.PORT ?? 4242) });
 console.log(`Payment endpoint listening at ${process.env.BASE_URL}`);
 
 export { app };
