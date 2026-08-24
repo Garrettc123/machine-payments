@@ -1,13 +1,10 @@
-.PHONY: install run mcp lint format typecheck test ci
+.PHONY: install run lint format typecheck test ci
 
 install:
 	pnpm install
 
 run:
 	pnpm run dev
-
-mcp:
-	pnpm run mcp
 
 lint:
 	pnpm exec biome check .

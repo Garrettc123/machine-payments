@@ -5,6 +5,7 @@ import { Hono } from "hono";
 import { Mppx, stripe as mppStripe } from "mppx/server";
 import Stripe from "stripe";
 import { completeOrder, getItem, validatePurchase } from "./catalog.js";
+import { handleMcpRequest } from "./mcp.js";
 
 config();
 
@@ -85,6 +86,8 @@ async function handler(request) {
 
 const app = new Hono();
 
+app.post("/mcp", (context) => handleMcpRequest(context.req.raw));
+
 app.on(["GET", "POST"], "/api/purchase", (context) => handler(context.req.raw));
 
 app.get("/checkout/:itemId", (context) => {
@@ -92,6 +95,6 @@ app.get("/checkout/:itemId", (context) => {
 });
 
 serve({ fetch: app.fetch, port: Number(process.env.PORT ?? 4242) });
-console.log(`Payment endpoint listening at ${process.env.BASE_URL}`);
+console.log(`Server listening at ${process.env.BASE_URL}`);
 
 export { app };

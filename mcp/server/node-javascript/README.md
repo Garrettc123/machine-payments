@@ -30,22 +30,22 @@ cp ../../../.env.template .env
 make install
 ```
 
-## Run the payment endpoint
+## Run the server
 
 ```bash
 make run
 ```
 
-## Install the MCP server
+This starts the MCP endpoint at `http://localhost:4242/mcp` and the payment endpoint at `http://localhost:4242/api/purchase`.
 
-Install the server in your agent of choice. See Stripe's [MCP server configuration guidance](https://docs.stripe.com/agentic-commerce/monetize-mcp#add-your-mcp-server) for client-specific instructions.
+## Connect the MCP server
+
+Connect the HTTP MCP server to your agent of choice. See Stripe's [MCP server configuration guidance](https://docs.stripe.com/agentic-commerce/monetize-mcp#add-your-mcp-server) for client-specific instructions.
 
 For example, in Claude Code:
 
 ```bash
-claude mcp add --scope local paid-catalog -- \
-  node --env-file="$(pwd)/.env" \
-  "$(pwd)/mcp.js"
+claude mcp add --transport http paid-catalog http://localhost:4242/mcp
 ```
 
 ## Test the sample
@@ -56,7 +56,7 @@ Ask an MCP-enabled agent:
 Use the create_purchase_link tool from the paid-catalog MCP to purchase one item with the ID `coffee` for Alice at test@example.com. This flow uses test mode, so it doesn't move real funds.
 ```
 
-The agent receives an `/api/purchase` URL, uses the Link CLI to obtain an MPP credential, and posts it to complete the payment. The `coffee` item costs $5.00; `sticker` costs $2.00. If you open the URL in your browser, it will redirect to a placeholder checkout page.
+The agent calls the HTTP MCP tool, receives an `/api/purchase` URL, uses the Link CLI to obtain an MPP credential, and posts it to complete the payment. The `coffee` item costs $5.00; `sticker` costs $2.00. If you open the URL in your browser, it will redirect to a placeholder checkout page.
 
 ## Development commands
 

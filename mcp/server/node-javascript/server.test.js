@@ -23,7 +23,29 @@ beforeAll(async () => {
   ({ app } = await import("./server.js"));
 });
 
-describe("monetized MCP payment endpoint", () => {
+describe("monetized MCP server", () => {
+  it("serves the paid catalog over HTTP MCP", async () => {
+    const response = await app.request("/mcp", {
+      method: "POST",
+      headers: {
+        Accept: "application/json, text/event-stream",
+        "Content-Type": "application/json",
+        "MCP-Protocol-Version": "2025-06-18",
+      },
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        id: 1,
+        method: "tools/list",
+        params: {},
+      }),
+    });
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({
+      result: { tools: [{ name: "create_purchase_link" }] },
+    });
+  });
+
   it("accepts a valid purchase after the MPP payment flow", async () => {
     const response = await app.request(
       "/api/purchase?itemId=coffee&quantity=1&customerName=Alice&customerEmail=test@example.com",
