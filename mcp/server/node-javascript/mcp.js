@@ -14,7 +14,7 @@ server.registerTool(
     description:
       "Returns a payment link for a one-time purchase. " +
       "POST to the link with an MPP credential to pay automatically, " +
-      "or open it in a browser to pay with a card.",
+      "or open it in a browser to preview the browser checkout fallback.",
     inputSchema: {
       itemId: z.string(),
       quantity: z.number().int().positive(),
@@ -47,8 +47,8 @@ server.registerTool(
               // This link must be MPP enabled.
               paymentLink,
               instructions: {
-                agent: `Use \`npx @stripe/link-cli mpp pay ${paymentLink}\` to pay with a Shared Payment Token for networkId "${process.env.STRIPE_PROFILE_ID}". Include a \`--context\` argument describing the purchase (minimum 100 characters), and add \`--test\` if this is a test-mode flow.`,
-                browser: "Open paymentLink in a browser to pay with a card.",
+                agent: `Use \`npx @stripe/link-cli mpp pay '${paymentLink}'\` to pay with a Shared Payment Token for networkId "${process.env.STRIPE_PROFILE_ID}". Include a \`--context\` argument describing the purchase (minimum 100 characters), and add \`--test\` if this is a test-mode flow.`,
+                browser: "Open paymentLink in a browser to view the placeholder checkout page.",
               },
               item: {
                 title: item.title,

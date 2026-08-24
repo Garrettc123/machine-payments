@@ -47,7 +47,7 @@ async function handler(request) {
   const url = new URL(request.url);
   const params = url.searchParams;
 
-  // Browser redirect — send humans to a checkout page you control.
+  // Browser redirect — replace the placeholder route with your checkout flow.
   const accept = request.headers.get("Accept") ?? "";
   if (accept.includes("text/html")) {
     return Response.redirect(

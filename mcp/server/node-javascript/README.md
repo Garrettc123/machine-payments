@@ -56,7 +56,7 @@ Ask an MCP-enabled agent:
 Use the create_purchase_link tool from the paid-catalog MCP to purchase one item with the ID `coffee` for Alice at test@example.com. This flow uses test mode, so it doesn't move real funds.
 ```
 
-The agent receives an `/api/purchase` URL, uses the Link CLI to obtain an MPP credential, and posts it to complete the payment. The `coffee` item costs $5.00; `sticker` costs $2.00.
+The agent receives an `/api/purchase` URL, uses the Link CLI to obtain an MPP credential, and posts it to complete the payment. The `coffee` item costs $5.00; `sticker` costs $2.00. If you open the URL in your browser, it will redirect to a placeholder checkout page.
 
 ## Development commands
 
