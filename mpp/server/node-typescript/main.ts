@@ -53,7 +53,6 @@ const stripeMachinePayments = stripe.create({
   client: stripeClient,
   networkId: process.env.STRIPE_PROFILE_ID!,
   livemode: !process.env.STRIPE_SECRET_KEY!.includes("_test_"),
-  // If omitted, mppx fetches an existing deposit address or creates a new one.
   depositAddresses: { tempo: tempoDepositAddress },
 });
 
@@ -64,10 +63,7 @@ const mppx = Mppx.create({
   secretKey: mppSecretKey,
 });
 
-const paid = mppx.compose(
-  ["tempo/charge", { amount: "0.01" }],
-  ["stripe/charge", { amount: "0.50" }],
-);
+const paid = mppx.charge({ amount: "0.50" });
 
 app.post("/paid", async (c) => {
   const response = await paid(c.req.raw);

@@ -37,7 +37,7 @@ vi.mock("mppx/server", () => {
     withReceipt: (res: Response) => res,
   });
   const mockInstance = {
-    compose: vi.fn().mockReturnValue(chargeHandler),
+    charge: vi.fn().mockReturnValue(chargeHandler),
   };
   return {
     Mppx: {
