@@ -1,5 +1,5 @@
+import crypto from "node:crypto";
 import { serve } from "@hono/node-server";
-import crypto from "crypto";
 import { config } from "dotenv";
 import { Hono } from "hono";
 import { Mppx, stripe as mppStripe } from "mppx/server";
@@ -15,6 +15,10 @@ if (!process.env.STRIPE_SECRET_KEY) {
 
 if (!process.env.STRIPE_PROFILE_ID) {
   throw new Error("STRIPE_PROFILE_ID environment variable is required");
+}
+
+if (!process.env.BASE_URL) {
+  throw new Error("BASE_URL environment variable is required");
 }
 
 const stripeClient = new Stripe(process.env.STRIPE_SECRET_KEY, {
@@ -44,7 +48,7 @@ const mppx = Mppx.create({
 });
 
 // GET or POST /api/purchase?itemId=...&quantity=...
-async function handler(request) {
+async function handler(request: Request): Promise<Response> {
   const url = new URL(request.url);
   const params = url.searchParams;
 
@@ -63,24 +67,25 @@ async function handler(request) {
   const customerName = params.get("customerName");
   const customerEmail = params.get("customerEmail");
 
-  if (!validatePurchase({ item, quantity, customerName, customerEmail })) {
+  const purchase = { item, quantity, customerName, customerEmail };
+  if (!validatePurchase(purchase)) {
     return Response.json({ error: "Invalid purchase request" }, { status: 400 });
   }
 
   const result = await mppx.compose([
     "stripe/charge",
     {
-      amount: ((item.priceCents * quantity) / 100).toFixed(2),
+      amount: ((purchase.item.priceCents * purchase.quantity) / 100).toFixed(2),
       currency: "usd",
       decimals: 2,
-      description: item.title,
+      description: purchase.item.title,
     },
   ])(request);
 
   if (result.status === 402) return result.challenge;
 
   // Payment confirmed — run your business logic.
-  const order = completeOrder({ item, quantity, customerName, customerEmail });
+  const order = completeOrder(purchase);
   return result.withReceipt(Response.json({ success: true, orderId: order.id }));
 }
 

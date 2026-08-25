@@ -1,14 +1,22 @@
+import type { Hono } from "hono";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 
 vi.stubEnv("STRIPE_SECRET_KEY", "sk_test_fake");
 vi.stubEnv("STRIPE_PROFILE_ID", "profile_test_123");
+vi.stubEnv("BASE_URL", "http://localhost:4242");
 
 vi.mock("@hono/node-server", () => ({ serve: vi.fn() }));
-vi.mock("stripe", () => ({ default: vi.fn().mockImplementation(class {}) }));
+vi.mock("stripe", () => {
+  function StripeMock() {
+    return {};
+  }
+
+  return { default: vi.fn().mockImplementation(StripeMock) };
+});
 vi.mock("mppx/server", () => {
   const handler = vi.fn().mockResolvedValue({
     status: 200,
-    withReceipt: (response) => response,
+    withReceipt: (response: Response) => response,
   });
 
   return {
@@ -17,7 +25,7 @@ vi.mock("mppx/server", () => {
   };
 });
 
-let app;
+let app: Hono;
 
 beforeAll(async () => {
   ({ app } = await import("./server.js"));

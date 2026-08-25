@@ -1,4 +1,4 @@
-SAMPLES := mcp/server/node-javascript \
+SAMPLES := mcp/server/node-typescript \
            mpp/server/node-typescript mpp/server/python \
            x402/server/node-typescript x402/server/python
 

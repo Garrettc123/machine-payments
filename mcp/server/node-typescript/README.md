@@ -1,6 +1,6 @@
-# Monetized MCP server - JavaScript
+# Monetized MCP server - TypeScript
 
-This is the JavaScript implementation of a monetized MCP catalog sample using MPP and Stripe Shared Payment Tokens.
+This is the TypeScript implementation of a monetized MCP catalog sample using MPP and Stripe Shared Payment Tokens.
 
 ## Requirements
 
@@ -62,6 +62,6 @@ The agent calls the HTTP MCP tool, receives an `/api/purchase` URL, uses the Lin
 
 - `make lint` — run lint and formatting checks without changing files
 - `make format` — apply automatic formatting fixes
-- `make typecheck` — run JavaScript syntax validation
+- `make typecheck` — run TypeScript type checking
 - `make test` — run the automated test suite
 - `make ci` — run the full local CI sequence (`install`, `lint`, `typecheck`, and `test`)

@@ -1,11 +1,11 @@
 {
-  "name": "mcp-server-node-javascript",
+  "name": "mcp-server-node-typescript",
   "private": true,
   "type": "module",
   "description": "Monetized MCP catalog sample using MPP and Stripe",
   "scripts": {
-    "dev": "node server.js",
-    "build": "node --check catalog.js && node --check mcp.js && node --check server.js"
+    "dev": "tsx server.ts",
+    "build": "tsc --noEmit"
   },
   "dependencies": {
     "@hono/node-server": "^2.1.1",
@@ -18,6 +18,9 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.7",
+    "@types/node": "^26.2.0",
+    "tsx": "^4.23.4",
+    "typescript": "^7.0.2",
     "vitest": "^4.1.5"
   }
 }
