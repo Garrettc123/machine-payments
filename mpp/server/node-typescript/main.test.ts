@@ -1,6 +1,8 @@
 import type { Hono } from "hono";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 
+const mocks = vi.hoisted(() => ({ discovery: vi.fn() }));
+
 // Stub env vars before importing the app
 vi.stubEnv("STRIPE_SECRET_KEY", "sk_test_fake");
 vi.stubEnv("TEMPO_DEPOSIT_ADDRESS", "0xtest_deposit_address");
@@ -9,6 +11,10 @@ vi.stubEnv("STRIPE_PROFILE_ID", "profile_test_123");
 // Mock @hono/node-server so `serve()` is a no-op
 vi.mock("@hono/node-server", () => ({
   serve: vi.fn(),
+}));
+
+vi.mock("mppx/hono", () => ({
+  discovery: mocks.discovery,
 }));
 
 // Mock process.exit to prevent it from killing the test runner
@@ -67,5 +73,16 @@ describe("mpp server", () => {
   it("POST /paid returns 402 or 200 depending on mppx charge flow", async () => {
     const res = await app.request("/paid", { method: "POST" });
     expect([200, 402]).toContain(res.status);
+  });
+
+  it("describes the optional POST body in OpenAPI discovery", async () => {
+    const config = mocks.discovery.mock.calls[0]?.[2] as {
+      routes: Array<{ requestBody?: unknown }>;
+    };
+    expect(config.routes[0]?.requestBody).toEqual({
+      required: false,
+      content: { "application/json": { schema: { type: "object" } } },
+      description: "Optional JSON request data.",
+    });
   });
 });

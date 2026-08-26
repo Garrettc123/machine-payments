@@ -80,6 +80,11 @@ discovery(app, mppx, {
       handler: paid,
       method: "POST",
       path: "/paid",
+      requestBody: {
+        content: { "application/json": { schema: { type: "object" } } },
+        description: "Optional JSON request data.",
+        required: false,
+      },
       summary: "Returns paid content",
     },
   ],
