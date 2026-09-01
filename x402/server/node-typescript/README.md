@@ -2,6 +2,8 @@
 
 This is the TypeScript implementation of the x402 REST API sample using Hono.
 
+See Stripe's [x402 documentation](https://docs.stripe.com/payments/machine/x402) for more information.
+
 ## Requirements
 
 - Node.js 20+

@@ -2,6 +2,8 @@
 
 This is the Python implementation of the x402 REST API sample using FastAPI.
 
+See Stripe's [x402 documentation](https://docs.stripe.com/payments/machine/x402) for more information.
+
 ## Requirements
 
 - Python 3.10+

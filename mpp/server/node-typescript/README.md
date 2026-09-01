@@ -2,6 +2,8 @@
 
 This is the TypeScript implementation of the MPP REST API sample using Hono. It accepts Tempo and Stripe shared payment token (SPT) payments and automatically records successful payments as Stripe PaymentIntents.
 
+See Stripe's [Machine Payments Protocol documentation](https://docs.stripe.com/payments/machine/mpp) for more information.
+
 ## Requirements
 
 - Node.js 20+

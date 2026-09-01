@@ -2,6 +2,8 @@
 
 This is the TypeScript implementation of a monetized MCP catalog sample using MPP and Stripe Shared Payment Tokens.
 
+See Stripe's [guide to monetizing an MCP server](https://docs.stripe.com/agentic-commerce/monetize-mcp) for more information.
+
 ## Requirements
 
 - Node.js 20+

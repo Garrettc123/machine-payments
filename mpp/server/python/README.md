@@ -2,6 +2,8 @@
 
 This is the Python implementation of the MPP REST API sample using FastAPI.
 
+See Stripe's [Machine Payments Protocol documentation](https://docs.stripe.com/payments/machine/mpp) for more information.
+
 ## Requirements
 
 - Python 3.12+
