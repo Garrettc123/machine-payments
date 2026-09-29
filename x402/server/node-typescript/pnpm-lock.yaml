@@ -21,8 +21,8 @@ importers:
         specifier: ^2.22.0
         version: 2.22.0(typescript@7.0.2)
       '@x402/fetch':
-        specifier: ^2.11.0
-        version: 2.21.0
+        specifier: ^2.27.0
+        version: 2.27.0
       '@x402/hono':
         specifier: ^2.23.0
         version: 2.23.0(hono@4.13.0)(typescript@7.0.2)
@@ -1163,9 +1163,6 @@ packages:
   '@vitest/spy@5.0.2':
     resolution: {integrity: sha512-Ijc7T1nT9efNb5LxvjaBrEqw3f/QwUv5EE0nKqZxgqsaV/FxAAZ8baGylA8X/Z2oS4Lp+K74Jr6dTJsDKxJDeg==}
 
-  '@x402/core@2.21.0':
-    resolution: {integrity: sha512-0djKE7V5/JKDMrjRe5he3DoMFzlbVnUcvMmLAb2j6OoAJDamupkFh6fFrXeoHwjkBIxOFUzjGI4FVixz2dMxSA==}
-
   '@x402/core@2.22.0':
     resolution: {integrity: sha512-hYySs/PvukqRipC2mKqrsn/jx2U/p5EGnN3clQ2CIcApwtoFuG77CqpC3Wy7Fdp/juW8t8quiPVnqGuIkfix1Q==}
 
@@ -1181,8 +1178,8 @@ packages:
   '@x402/extensions@2.23.0':
     resolution: {integrity: sha512-K0hDWGNrQ5iU8CdDzM8RpYrMusfqs2rgZJbCfUnFXG61TjgFIYYyLExaP8jJ4y2ac0SGXYZC1MI+uJA6YP3TTw==}
 
-  '@x402/fetch@2.21.0':
-    resolution: {integrity: sha512-LEiJ8jjb8fmCNgF1yMjLoVRtrg8gtb/zJgBDLW7t/KPbntDDqgru+nd1OLU1qyyp9D2I7ULYP420eHVyAVZ12w==}
+  '@x402/fetch@2.27.0':
+    resolution: {integrity: sha512-lHJsvBLGRTVw2tVBKyiNfnjrTqqXbks6QKAuFMUGlyBgm6ErcZKaW804jqXUpGOSt+UPHscbbkLclEWHrk5gcQ==}
 
   '@x402/hono@2.23.0':
     resolution: {integrity: sha512-X0fnLcdEpwqf4toNT55OdfsffiSNvmQeCYLvHMpbSxmlKlFe5r33wrrAu+Vr1oTTg4ooulywsXNNg9tmx/PlzQ==}
@@ -2505,10 +2502,6 @@ snapshots:
 
   '@vitest/spy@5.0.2': {}
 
-  '@x402/core@2.21.0':
-    dependencies:
-      zod: 3.25.76
-
   '@x402/core@2.22.0':
     dependencies:
       zod: 3.25.76
@@ -2548,9 +2541,9 @@ snapshots:
       - typescript
       - utf-8-validate
 
-  '@x402/fetch@2.21.0':
+  '@x402/fetch@2.27.0':
     dependencies:
-      '@x402/core': 2.21.0
+      '@x402/core': 2.27.0
 
   '@x402/hono@2.23.0(hono@4.13.0)(typescript@7.0.2)':
     dependencies:
