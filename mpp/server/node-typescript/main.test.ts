@@ -58,10 +58,13 @@ vi.mock("mppx/server", () => {
 });
 
 let app: Hono;
+let discoveryConfig: { routes: Array<{ requestBody?: unknown }> };
 
 beforeAll(async () => {
   const mod = await import("./main.ts");
   app = mod.app;
+  // Vitest clears mock call history before each test.
+  discoveryConfig = mocks.discovery.mock.calls[0]?.[2] as typeof discoveryConfig;
 });
 
 describe("mpp server", () => {
@@ -76,10 +79,7 @@ describe("mpp server", () => {
   });
 
   it("describes the optional POST body in OpenAPI discovery", async () => {
-    const config = mocks.discovery.mock.calls[0]?.[2] as {
-      routes: Array<{ requestBody?: unknown }>;
-    };
-    expect(config.routes[0]?.requestBody).toEqual({
+    expect(discoveryConfig.routes[0]?.requestBody).toEqual({
       required: false,
       content: { "application/json": { schema: { type: "object" } } },
       description: "Optional JSON request data.",
